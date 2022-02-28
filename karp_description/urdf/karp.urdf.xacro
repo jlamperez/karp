@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- KARP -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="karp_robot">
+  <xacro:arg name="prefix" default="" />
+
+  <xacro:include filename="$(find karp_description)/urdf/karp_description.urdf.xacro" />
+
+  <!-- Import karp ros2_control description -->
+  <xacro:include filename="$(find karp_description)/ros2_control/karp.ros2_control.xacro" />
+
+  <xacro:karp prefix="$(arg prefix)" />
+
+  <xacro:karp_ros2_control name="karp" prefix="$(arg prefix)" />
+
+</robot>
