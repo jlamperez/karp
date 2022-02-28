@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!-- KARP -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="karp_robot">
+  <xacro:arg name="use_sim" default="false" />
+
+  <!-- Enable setting arguments from the launch file -->
+  <xacro:arg name="use_fake_hardware" default="true" />
+  <xacro:arg name="fake_sensor_commands" default="false" />
+  <xacro:arg name="prefix" default="" />
+
+  <xacro:include filename="$(find karp_description)/urdf/karp_description.urdf.xacro" />
+
+  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
+  <!-- <xacro:include filename="$(find karp_description)/gazebo/karp.gazebo.xacro" /> -->
+
+  <!-- Import karp ros2_control description -->
+  <xacro:include filename="$(find karp_description)/ros2_control/karp_system.ros2_control.xacro" />
+
+  <xacro:karp prefix="$(arg prefix)" />
+
+  <!-- <xacro:karp_gazebo prefix="$(arg prefix)" /> -->
+
+  <xacro:karp_system
+    name="KARPSystem" prefix="$(arg prefix)"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    fake_sensor_commands="$(arg fake_sensor_commands)"/>
+
+</robot>

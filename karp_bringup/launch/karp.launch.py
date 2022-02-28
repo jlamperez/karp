@@ -28,7 +28,8 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("karp_description"), "urdf", "karp.urdf.xacro"]
+                # [FindPackageShare("karp_description"), "urdf", "karp.urdf.xacro"]
+                [FindPackageShare("karp_description"), "urdf", "karp_system.urdf.xacro"]
             ),
         ]
     )
