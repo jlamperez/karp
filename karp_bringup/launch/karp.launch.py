@@ -13,27 +13,75 @@
 # limitations under the License.
 
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    # Declare arguments
+    declared_arguments = []
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "description_package",
+            default_value="karp_description",
+            description="Description package with robot URDF/xacro files.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "description_file",
+            # default_value="karp.urdf.xacro",
+            default_value="karp_system.urdf.xacro",
+            description="URDF/XACRO description file with the robot.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "prefix",
+            default_value='""',
+            description="Prefix of the joint names, useful for \
+        multi-robot setup. If changed than also joint names in the controllers' configuration \
+        have to be updated.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "launch_rviz",
+            default_value='false',
+            description="Start rviz with the launch file",
+        )
+    )
+
+    # Initialize Arguments
+    description_package = LaunchConfiguration("description_package")
+    description_file = LaunchConfiguration("description_file")
+    prefix = LaunchConfiguration("prefix")
+    launch_rviz = LaunchConfiguration("launch_rviz")
+
     # Get URDF via xacro
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                # [FindPackageShare("karp_description"), "urdf", "karp.urdf.xacro"]
-                [FindPackageShare("karp_description"), "urdf", "karp_system.urdf.xacro"]
+                [FindPackageShare(description_package), "urdf", description_file]
             ),
+            " ",
+            "prefix:=",
+            prefix,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
+
+    rviz_config_file = PathJoinSubstitution(
+        [FindPackageShare(description_package), "config", "karp.rviz"]
+    )
 
     robot_controllers = PathJoinSubstitution(
         [
@@ -42,8 +90,24 @@ def generate_launch_description():
             "karp_controllers.yaml",
         ]
     )
-    rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("karp_description"), "config", "karp.rviz"]
+
+    robot_state_pub_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        output="both",
+        parameters=[robot_description],
+        remappings=[
+            ("/diffbot_base_controller/cmd_vel_unstamped", "/cmd_vel"),
+        ],
+    )
+
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="log",
+        arguments=["-d", rviz_config_file],
+        condition=IfCondition(launch_rviz),
     )
 
     control_node = Node(
@@ -54,22 +118,6 @@ def generate_launch_description():
             "stdout": "screen",
             "stderr": "screen",
         },
-    )
-    robot_state_pub_node = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        output="both",
-        parameters=[robot_description],
-        remappings=[
-            ("/diff_drive_controller/cmd_vel_unstamped", "/cmd_vel"),
-        ],
-    )
-    rviz_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        output="log",
-        arguments=["-d", rviz_config_file],
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -108,4 +156,4 @@ def generate_launch_description():
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
     ]
 
-    return LaunchDescription(nodes)
+    return LaunchDescription(declared_arguments + nodes)
