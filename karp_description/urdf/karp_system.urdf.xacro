@@ -4,7 +4,7 @@
   <xacro:arg name="use_sim" default="false" />
 
   <!-- Enable setting arguments from the launch file -->
-  <xacro:arg name="use_fake_hardware" default="true" />
+  <xacro:arg name="use_fake_hardware" default="false" />
   <xacro:arg name="fake_sensor_commands" default="false" />
   <xacro:arg name="prefix" default="" />
 
