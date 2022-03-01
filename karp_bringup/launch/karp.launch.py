@@ -97,7 +97,7 @@ def generate_launch_description():
         output="both",
         parameters=[robot_description],
         remappings=[
-            ("/diffbot_base_controller/cmd_vel_unstamped", "/cmd_vel"),
+            ("/karp_base_controller/cmd_vel_unstamped", "/cmd_vel"),
         ],
     )
 
