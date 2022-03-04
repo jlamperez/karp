@@ -19,7 +19,7 @@
         <param name="serial_number">206230715432</param>
         <param name="axis">0</param>
         <param name="enable_watchdog">1</param>
-        <param name="watchdog_timeout">0.1</param>
+        <param name="watchdog_timeout">0.5</param>
       </joint>
       <joint name="${prefix}right_wheel_joint">
         <command_interface name="velocity"/>
@@ -28,7 +28,7 @@
         <param name="serial_number">206230715432</param>
         <param name="axis">1</param>
         <param name="enable_watchdog">1</param>
-        <param name="watchdog_timeout">0.1</param>
+        <param name="watchdog_timeout">0.5</param>
       </joint>
     </ros2_control>
 
