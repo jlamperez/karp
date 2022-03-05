@@ -96,9 +96,6 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
-        remappings=[
-            ("/karp_base_controller/cmd_vel_unstamped", "/cmd_vel"),
-        ],
     )
 
     rviz_node = Node(
@@ -118,6 +115,9 @@ def generate_launch_description():
             "stdout": "screen",
             "stderr": "screen",
         },
+        remappings=[
+            ("/karp_base_controller/cmd_vel_unstamped", "/cmd_vel"),
+        ],
     )
 
     joint_state_broadcaster_spawner = Node(
