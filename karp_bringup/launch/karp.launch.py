@@ -1,4 +1,4 @@
-# Copyright 2020 ros2_control Development Team
+# Copyright 2022 Jorge Lamperez
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,13 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+
+from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (
+    Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution,
+    TextSubstitution)
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -57,12 +62,66 @@ def generate_launch_description():
             description="Start rviz with the launch file",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "joy_vel",
+            default_value='cmd_vel',
+            description="Joystick velocity command",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "joy_config",
+            default_value='ps3',
+            description="ps3 controller configuration file",
+        )
+    )
+
+    joy_config = LaunchConfiguration("joy_config")
+
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "joy_dev",
+            default_value='/dev/input/js0',
+            description="Joystick linux file",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "config_filepath",
+            default_value=[TextSubstitution(text=os.path.join(
+                get_package_share_directory('teleop_twist_joy'), 'config', '')),
+                joy_config, TextSubstitution(text='.config.yaml')],
+            description="Configuration file path, by default: \
+                '/usr/share/teleop_twist_joy/config/ps3.config.yaml'",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "launch_teleop",
+            default_value="true",
+            description="Start joystick teleop with the launch file",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "use_fake_hardware",
+            default_value='false',
+            description="Use Odrive hardware interface or generic fake hardware",
+        )
+    )
+
 
     # Initialize Arguments
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
     prefix = LaunchConfiguration("prefix")
     launch_rviz = LaunchConfiguration("launch_rviz")
+    joy_vel = LaunchConfiguration("joy_vel")
+    joy_dev = LaunchConfiguration("joy_dev")
+    config_filepath = LaunchConfiguration('config_filepath')
+    launch_teleop = LaunchConfiguration("launch_teleop")
+    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -75,6 +134,9 @@ def generate_launch_description():
             " ",
             "prefix:=",
             prefix,
+            " ",
+            "use_fake_hardware:=",
+            use_fake_hardware,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -148,7 +210,28 @@ def generate_launch_description():
         )
     )
 
+    joy_linux = Node(
+        package='joy_linux',
+        executable='joy_linux_node',
+        parameters=[{
+            'dev': joy_dev,
+            'deadzone': 0.3,
+            'autorepeat_rate': 20.0,
+        }],
+        condition=IfCondition(launch_teleop),
+    )
+
+    teleop_twist_joy = Node(
+        package='teleop_twist_joy',
+        executable='teleop_node',
+        parameters=[config_filepath],
+        remappings={('/cmd_vel', LaunchConfiguration('joy_vel'))},
+        condition=IfCondition(launch_teleop),
+    )
+
     nodes = [
+        joy_linux,
+        teleop_twist_joy,
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
