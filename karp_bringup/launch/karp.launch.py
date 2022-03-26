@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import yaml
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -110,6 +111,13 @@ def generate_launch_description():
             description="Use Odrive hardware interface or generic fake hardware",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "launch_velodyne",
+            default_value="false",
+            description="Starts jvelodyne lidar with the launch file",
+        )
+    )
 
 
     # Initialize Arguments
@@ -122,6 +130,21 @@ def generate_launch_description():
     config_filepath = LaunchConfiguration('config_filepath')
     launch_teleop = LaunchConfiguration("launch_teleop")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    launch_velodyne = LaunchConfiguration("launch_velodyne")
+
+    driver_share_dir_1 = get_package_share_directory('velodyne_driver')
+    driver_params_file_1 = os.path.join(driver_share_dir_1, 'config', 'vlp_1.yaml')
+
+    convert_share_dir_1 = get_package_share_directory('velodyne_pointcloud')
+    convert_params_file_1 = os.path.join(
+        convert_share_dir_1, 'config', 'VLP16-velodyne_convert_node-params.yaml')
+    with open(convert_params_file_1, 'r') as f:
+        convert_params_1 = yaml.safe_load(f)['velodyne_convert_node']['ros__parameters']
+    convert_params_1['calibration'] = os.path.join(convert_share_dir_1, 'params', 'VLP16db.yaml')
+
+    laserscan_share_dir_1 = get_package_share_directory('velodyne_laserscan')
+    laserscan_params_file_1 = os.path.join(
+        laserscan_share_dir_1, 'config', 'default-velodyne_laserscan_node-params.yaml')
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -229,6 +252,37 @@ def generate_launch_description():
         condition=IfCondition(launch_teleop),
     )
 
+    velodyne_driver_node_1 = Node(
+        package="velodyne_driver",
+        executable="velodyne_driver_node",
+        name="velodyne_driver_node_1",
+        parameters=[driver_params_file_1],
+        remappings=[("velodyne_packets", "velodyne_packets_1")],
+        condition=IfCondition(launch_velodyne),
+    )
+
+    velodyne_convert_node_1 = Node(
+        package="velodyne_pointcloud",
+        executable="velodyne_convert_node",
+        name="velodyne_convert_node_1",
+        parameters=[convert_params_1],
+        remappings=[
+        ("velodyne_packets", "velodyne_packets_1"),
+        ("velodyne_points", "velodyne_points_1")],
+        condition=IfCondition(launch_velodyne),
+    )
+
+    velodyne_laserscan_node_1 = Node(
+        package="velodyne_laserscan",
+        executable="velodyne_laserscan_node",
+        name="velodyne_laserscan_node_1",
+        parameters=[laserscan_params_file_1],
+        remappings=[
+        ("velodyne_points", "velodyne_points_1"),
+        ("scan", "scan_1")],
+        condition=IfCondition(launch_velodyne),
+    )
+
     nodes = [
         joy_linux,
         teleop_twist_joy,
@@ -237,6 +291,9 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+        velodyne_driver_node_1,
+        velodyne_convert_node_1,
+        velodyne_laserscan_node_1,
     ]
 
     return LaunchDescription(declared_arguments + nodes)
