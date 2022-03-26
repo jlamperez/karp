@@ -7,9 +7,15 @@
 
   <!-- Import karp ros2_control description -->
   <xacro:include filename="$(find karp_description)/ros2_control/karp.ros2_control.xacro" />
+  <!-- Import velodyne VLP16 description -->
+  <xacro:include filename="$(find karp_description)/urdf/VLP-16.urdf.xacro"/>
 
   <xacro:karp prefix="$(arg prefix)" />
 
   <xacro:karp_ros2_control name="karp" prefix="$(arg prefix)" />
+
+  <xacro:VLP-16 parent="$(arg prefix)base_link" name="velodyne">
+    <origin xyz="0.151 0 0.208" rpy="0 0 0"/>
+  </xacro:VLP-16>
 
 </robot>

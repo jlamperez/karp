@@ -10,19 +10,20 @@
 
   <xacro:include filename="$(find karp_description)/urdf/karp_description.urdf.xacro" />
 
-  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
-  <!-- <xacro:include filename="$(find karp_description)/gazebo/karp.gazebo.xacro" /> -->
-
   <!-- Import karp ros2_control description -->
   <xacro:include filename="$(find karp_description)/ros2_control/karp_system.ros2_control.xacro" />
+  <!-- Import velodyne VLP16 description -->
+  <xacro:include filename="$(find karp_description)/urdf/VLP-16.urdf.xacro"/>
 
   <xacro:karp prefix="$(arg prefix)" />
-
-  <!-- <xacro:karp_gazebo prefix="$(arg prefix)" /> -->
 
   <xacro:karp_system
     name="KARPSystem" prefix="$(arg prefix)"
     use_fake_hardware="$(arg use_fake_hardware)"
     fake_sensor_commands="$(arg fake_sensor_commands)"/>
+
+  <xacro:VLP-16 parent="$(arg prefix)base_link" name="velodyne">
+    <origin xyz="0.151 0 0.208" rpy="0 0 0"/>
+  </xacro:VLP-16>
 
 </robot>

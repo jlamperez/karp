@@ -180,24 +180,6 @@
     </inertial>
   </link>
 
-  <!-- lidar joint-->
-  <joint name="${prefix}lidar_joint" type="fixed">
-    <parent link="${prefix}base_link"/>
-    <child link="${prefix}base_laser"/>
-    <origin xyz="0.151 0 0.208" rpy="0 0 0"/>
-  </joint>
-
-  <!-- lidar link-->
-  <link name="${prefix}base_laser">
-    <visual>
-      <origin xyz="0 0 0" rpy="${PI/2} 0 ${PI/2}"/>
-      <geometry>
-        <mesh filename="package://karp_description/meshes/velodyne.dae" />
-      </geometry>
-    </visual>
-  </link>
-
-
   </xacro:macro>
 
 </robot>
