@@ -21,11 +21,11 @@ class RBEMotorConfig:
 
     # Min/Max phase inductance of motor
     MIN_PHASE_INDUCTANCE = 0
-    MAX_PHASE_INDUCTANCE = 0.002
+    MAX_PHASE_INDUCTANCE = 0.003
 
     # Min/Max phase resistance of motor
     MIN_PHASE_RESISTANCE = 0
-    MAX_PHASE_RESISTANCE = 1
+    MAX_PHASE_RESISTANCE = 1.2
 
     # Tolerance for encoder offset float
     ENCODER_OFFSET_FLOAT_TOLERANCE = 1.0
@@ -66,7 +66,7 @@ class RBEMotorConfig:
         self.odrv_axis.motor.config.pole_pairs = 15
         self.odrv_axis.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
 
-        self.odrv_axis.motor.config.resistance_calib_max_voltage = 10
+        self.odrv_axis.motor.config.resistance_calib_max_voltage = 15
         self.odrv_axis.motor.config.requested_current_range      = 25
         self.odrv_axis.motor.config.current_control_bandwidth    = 100
 
